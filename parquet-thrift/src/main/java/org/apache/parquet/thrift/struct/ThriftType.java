@@ -37,19 +37,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.annotate.JsonTypeInfo.As;
-import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.*;
+
+//import org.codehaus.jackson.annotate.JsonCreator;
+//import org.codehaus.jackson.annotate.JsonIgnore;
+//import org.codehaus.jackson.annotate.JsonProperty;
+//import org.codehaus.jackson.annotate.JsonSubTypes;
+//import org.codehaus.jackson.annotate.JsonTypeInfo;
+//import org.codehaus.jackson.annotate.JsonTypeInfo.As;
+//import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 
 /**
  * Descriptor for a Thrift class.
  * Used to persist the thrift schema
  */
-@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "id")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "id")
 @JsonSubTypes({
     @JsonSubTypes.Type(value=ThriftType.BoolType.class, name="BOOL"),
     @JsonSubTypes.Type(value=ThriftType.ByteType.class, name="BYTE"),
@@ -72,9 +74,8 @@ public abstract class ThriftType {
     if (!(o instanceof ThriftType)) return false;
 
     ThriftType that = (ThriftType) o;
-    if (type != that.type) return false;
 
-    return true;
+    return type == that.type;
   }
 
   @Override

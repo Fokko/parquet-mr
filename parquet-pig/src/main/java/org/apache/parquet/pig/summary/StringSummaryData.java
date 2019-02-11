@@ -20,11 +20,7 @@ package org.apache.parquet.pig.summary;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-
-import org.codehaus.jackson.annotate.JsonWriteNullProperties;
 
 import org.apache.parquet.pig.summary.EnumStat.EnumValueCount;
 
@@ -32,7 +28,6 @@ import org.apache.parquet.pig.summary.EnumStat.EnumValueCount;
 /**
  * Summary data for a String
  */
-@JsonWriteNullProperties(value = false)
 public class StringSummaryData extends SummaryData {
 
   private ValueStat size = new ValueStat();
@@ -65,13 +60,8 @@ public class StringSummaryData extends SummaryData {
     if (values2 == null) {
       return null;
     }
-    List<EnumValueCount> list = new ArrayList<EnumValueCount>(values2);
-    Collections.sort(list, new Comparator<EnumValueCount>() {
-      @Override
-      public int compare(EnumValueCount o1, EnumValueCount o2) {
-        return o2.getCount() - o1.getCount();
-      }
-    });
+    List<EnumValueCount> list = new ArrayList<>(values2);
+    list.sort((o1, o2) -> o2.getCount() - o1.getCount());
     return list;
   }
 
