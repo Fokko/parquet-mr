@@ -73,14 +73,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <github.global.server>github</github.global.server>
     <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-    <jackson.groupId>org.codehaus.jackson</jackson.groupId>
-    <jackson.version>1.9.13</jackson.version>
-    <jackson.package>org.codehaus.jackson</jackson.package>
-    <shade.prefix>shaded.parquet</shade.prefix>
     <hadoop.version>2.7.3</hadoop.version>
     <hadoop1.version>1.2.1</hadoop1.version>
     <cascading.version>2.7.1</cascading.version>
     <cascading3.version>3.1.2</cascading3.version>
+    <jackson2.version>2.9.8</jackson2.version>
     <parquet.format.version>2.6.0</parquet.format.version>
     <previous.version>1.7.0</previous.version>
     <thrift.executable>thrift</thrift.executable>
@@ -104,7 +101,6 @@
 
     <!-- parquet-cli dependencies -->
     <opencsv.version>2.3</opencsv.version>
-    <jackson2.version>2.9.8</jackson2.version>
     <jcommander.version>1.35</jcommander.version>
     <commons-codec.version>1.10</commons-codec.version>
   </properties>
@@ -122,7 +118,6 @@
     <module>parquet-format-structures</module>
     <module>parquet-generator</module>
     <module>parquet-hadoop</module>
-    <module>parquet-jackson</module>
     <module>parquet-pig</module>
     <module>parquet-pig-bundle</module>
     <module>parquet-protobuf</module>
@@ -300,47 +295,6 @@
             </configuration>
           </execution>
          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-shade-plugin</artifactId>
-          <version>3.0.0</version>
-          <executions>
-            <execution>
-              <phase>package</phase>
-              <goals>
-                <goal>shade</goal>
-              </goals>
-              <configuration>
-                <minimizeJar>true</minimizeJar>
-                <artifactSet>
-                  <includes>
-                    <include>${jackson.groupId}:*</include>
-                    <include>it.unimi.dsi:fastutil</include>
-                  </includes>
-                </artifactSet>
-                <!-- Shade jackson but do not include any class. Let parquet-jackson handle this -->
-                <filters>
-                  <filter>
-                    <artifact>${jackson.groupId}:*</artifact>
-                    <excludes>
-                      <exclude>**</exclude>
-                    </excludes>
-                  </filter>
-                </filters>
-                <relocations>
-                  <relocation>
-                    <pattern>${jackson.package}</pattern>
-                    <shadedPattern>${shade.prefix}.${jackson.package}</shadedPattern>
-                  </relocation>
-                  <relocation>
-                    <pattern>it.unimi.dsi</pattern>
-                    <shadedPattern>${shade.prefix}.it.unimi.dsi</shadedPattern>
-                  </relocation>
-                </relocations>
-              </configuration>
-            </execution>
-          </executions>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
