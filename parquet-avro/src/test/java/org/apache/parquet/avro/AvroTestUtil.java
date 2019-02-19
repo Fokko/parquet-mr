@@ -31,7 +31,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
-import org.codehaus.jackson.node.NullNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 

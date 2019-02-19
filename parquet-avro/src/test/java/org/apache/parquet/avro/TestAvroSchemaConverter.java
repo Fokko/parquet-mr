@@ -28,7 +28,7 @@ import org.apache.parquet.schema.MessageTypeParser;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Types;
-import org.codehaus.jackson.node.NullNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
