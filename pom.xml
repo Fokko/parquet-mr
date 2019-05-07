@@ -77,7 +77,7 @@
     <jackson.version>1.9.13</jackson.version>
     <jackson.package>org.codehaus.jackson</jackson.package>
     <shade.prefix>shaded.parquet</shade.prefix>
-    <hadoop.version>2.7.3</hadoop.version>
+    <hadoop.version>3.2.0</hadoop.version>
     <hadoop1.version>1.2.1</hadoop1.version>
     <cascading.version>2.7.1</cascading.version>
     <cascading3.version>3.1.2</cascading3.version>
