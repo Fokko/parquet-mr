@@ -1,0 +1,48 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: com.beust:jcommander
+    versions:
+    - ">= 1.78.a, < 1.79"
+  - dependency-name: com.fasterxml.jackson.core:jackson-core
+    versions:
+    - ">= 2.10.0.a, < 2.10.1"
+  - dependency-name: com.fasterxml.jackson.core:jackson-databind
+    versions:
+    - ">= 2.10.0.a, < 2.10.1"
+  - dependency-name: com.twitter.elephantbird:elephant-bird-core
+    versions:
+    - ">= 4.17.0.a, < 4.17.1"
+  - dependency-name: org.apache:apache
+    versions:
+    - ">= 21.0.a, < 21.1"
+  - dependency-name: org.apache.hadoop:hadoop-client
+    versions:
+    - ">= 3.2.a, < 3.3"
+  - dependency-name: org.apache.hive:hive-common
+    versions:
+    - "> 0.10.0"
+  - dependency-name: org.apache.hive:hive-exec
+    versions:
+    - "> 0.10.0"
+  - dependency-name: org.apache.hive:hive-serde
+    versions:
+    - "> 0.10.0"
+  - dependency-name: org.apache.maven.plugins:maven-enforcer-plugin
+    versions:
+    - ">= 1.4.a, < 1.5"
+  - dependency-name: org.apache.pig:pig
+    versions:
+    - ">= 0.17.a, < 0.18"
+  - dependency-name: org.scala-lang:scala-library
+    versions:
+    - 2.13.4
+  - dependency-name: org.easymock:easymock
+    versions:
+    - "4.2"
