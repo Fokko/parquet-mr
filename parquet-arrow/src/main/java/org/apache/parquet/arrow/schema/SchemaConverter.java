@@ -42,6 +42,7 @@ import static org.apache.parquet.schema.Type.Repetition.REPEATED;
 import static org.apache.parquet.schema.Type.Repetition.REQUIRED;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,6 +65,7 @@ import org.apache.arrow.vector.types.pojo.ArrowType.Timestamp;
 import org.apache.arrow.vector.types.pojo.ArrowType.Union;
 import org.apache.arrow.vector.types.pojo.ArrowType.Utf8;
 import org.apache.arrow.vector.types.pojo.Field;
+import org.apache.arrow.vector.types.pojo.FieldType;
 import org.apache.arrow.vector.types.pojo.Schema;
 import org.apache.parquet.arrow.schema.SchemaMapping.ListTypeMapping;
 import org.apache.parquet.arrow.schema.SchemaMapping.PrimitiveTypeMapping;
@@ -159,6 +161,11 @@ public class SchemaConverter {
       }
 
       @Override
+      public TypeMapping visit(ArrowType.LargeList largeList) {
+        return createListTypeMapping();
+      }
+
+      @Override
       public TypeMapping visit(org.apache.arrow.vector.types.pojo.ArrowType.FixedSizeList type) {
         return createListTypeMapping();
       }
@@ -177,6 +184,17 @@ public class SchemaConverter {
         // TODO(PARQUET-756): add Union OriginalType
         List<TypeMapping> parquetTypes = fromArrow(children);
         return new UnionTypeMapping(field, addToBuilder(parquetTypes, Types.buildGroup(OPTIONAL)).named(fieldName), parquetTypes);
+      }
+
+      @Override
+      public TypeMapping visit(ArrowType.Map map) {
+        if (children.size() != 2) {
+          throw new IllegalArgumentException("Map fields must have exactly two children: " + field);
+        }
+        TypeMapping keyChild = fromArrow(children.get(0), "key");
+        TypeMapping valueChild = fromArrow(children.get(1), "value");
+        GroupType groupType = Types.optionalMap().key(keyChild.getParquetType()).value(valueChild.getParquetType()).named(fieldName);
+        return new SchemaMapping.MapTypeMapping(field, new List3Levels(groupType), keyChild, valueChild);
       }
 
       @Override
@@ -215,7 +233,17 @@ public class SchemaConverter {
       }
 
       @Override
+      public TypeMapping visit(ArrowType.LargeUtf8 largeUtf8) {
+        return primitive(BINARY, stringType());
+      }
+
+      @Override
       public TypeMapping visit(Binary type) {
+        return primitive(BINARY);
+      }
+
+      @Override
+      public TypeMapping visit(ArrowType.LargeBinary largeBinary) {
         return primitive(BINARY);
       }
 
@@ -290,6 +318,16 @@ public class SchemaConverter {
       }
 
       @Override
+      public TypeMapping visit(ArrowType.Duration duration) {
+        return primitiveFLBA(12, LogicalTypeAnnotation.IntervalLogicalTypeAnnotation.getInstance());
+      }
+
+      @Override
+      public TypeMapping visit(ArrowType.ExtensionType type) {
+        return ArrowTypeVisitor.super.visit(type);
+      }
+
+      @Override
       public TypeMapping visit(ArrowType.FixedSizeBinary fixedSizeBinary) {
         return primitive(BINARY);
       }
@@ -358,7 +396,7 @@ public class SchemaConverter {
     if (repetition == REPEATED) {
       // case where we have a repeated field that is not in a List/Map
       TypeMapping child = fromParquet(type, null, REQUIRED);
-      Field arrowField = new Field(name, false, new ArrowType.List(), asList(child.getArrowField()));
+      Field arrowField = new Field(name, FieldType.nullable(new ArrowType.List()), Collections.singletonList(child.getArrowField()));
       return new RepeatedTypeMapping(arrowField, type, child);
     }
     if (type.isPrimitive()) {
@@ -377,7 +415,7 @@ public class SchemaConverter {
     LogicalTypeAnnotation logicalType = type.getLogicalTypeAnnotation();
     if (logicalType == null) {
       List<TypeMapping> typeMappings = fromParquet(type.getFields());
-      Field arrowField = new Field(name, type.isRepetition(OPTIONAL), new Struct(), fields(typeMappings));
+      Field arrowField = new Field(name, FieldType.nullable(new ArrowType.Struct()), fields(typeMappings));
       return new StructTypeMapping(arrowField, type, typeMappings);
     } else {
       return logicalType.accept(new LogicalTypeAnnotation.LogicalTypeAnnotationVisitor<TypeMapping>() {
@@ -385,7 +423,14 @@ public class SchemaConverter {
         public Optional<TypeMapping> visit(LogicalTypeAnnotation.ListLogicalTypeAnnotation listLogicalType) {
           List3Levels list3Levels = new List3Levels(type);
           TypeMapping child = fromParquet(list3Levels.getElement(), null, list3Levels.getElement().getRepetition());
-          Field arrowField = new Field(name, type.isRepetition(OPTIONAL), new ArrowType.List(), asList(child.getArrowField()));
+          Field arrowField = new Field(name, FieldType.nullable(new ArrowType.List()), Collections.singletonList(child.getArrowField()));
+          return of(new ListTypeMapping(arrowField, list3Levels, child));
+        }
+        @Override
+        public Optional<TypeMapping> visit(LogicalTypeAnnotation.MapLogicalTypeAnnotation mapLogicalType) {
+          List3Levels list3Levels = new List3Levels(type);
+          TypeMapping child = fromParquet(list3Levels.getElement(), null, list3Levels.getElement().getRepetition());
+          Field arrowField = new Field(name, FieldType.nullable(new ArrowType.List()), Collections.singletonList(child.getArrowField()));
           return of(new ListTypeMapping(arrowField, list3Levels, child));
         }
       }).orElseThrow(() -> new UnsupportedOperationException("Unsupported type " + type));
@@ -401,7 +446,7 @@ public class SchemaConverter {
     return type.getPrimitiveTypeName().convert(new PrimitiveType.PrimitiveTypeNameConverter<TypeMapping, RuntimeException>() {
 
       private TypeMapping field(ArrowType arrowType) {
-        Field field = new Field(name, type.isRepetition(OPTIONAL), arrowType, null);
+        Field field = Field.nullable(name, arrowType);
         return new PrimitiveTypeMapping(field, type);
       }
 
@@ -608,6 +653,11 @@ public class SchemaConverter {
       }
 
       @Override
+      public TypeMapping visit(ArrowType.LargeList largeList) {
+        return createListTypeMapping(largeList);
+      }
+
+      @Override
       public TypeMapping visit(org.apache.arrow.vector.types.pojo.ArrowType.FixedSizeList type) {
         return createListTypeMapping(type);
       }
@@ -640,6 +690,26 @@ public class SchemaConverter {
       }
 
       @Override
+      public TypeMapping visit(ArrowType.Map map) {
+        if (arrowField.getChildren().size() != 2) {
+          throw new IllegalArgumentException("Invalid map type: " + map);
+        }
+        if (parquetField.isPrimitive()) {
+          throw new IllegalArgumentException("Parquet type not a group: " + parquetField);
+        }
+        List3Levels list3Levels = new List3Levels(parquetField.asGroupType());
+        if (arrowField.getChildren().size() != 2) {
+          throw new IllegalArgumentException("invalid arrow map: " + arrowField);
+        }
+        Field keyChild = arrowField.getChildren().get(0);
+        Field valuechild = arrowField.getChildren().get(1);
+        return new SchemaMapping.MapTypeMapping(arrowField, list3Levels,
+          map(keyChild, list3Levels.getElement()),
+          map(valuechild, list3Levels.getElement())
+        );
+      }
+
+      @Override
       public TypeMapping visit(Int type) {
         return primitive();
       }
@@ -655,7 +725,17 @@ public class SchemaConverter {
       }
 
       @Override
+      public TypeMapping visit(ArrowType.LargeUtf8 largeUtf8) {
+        return primitive();
+      }
+
+      @Override
       public TypeMapping visit(Binary type) {
+        return primitive();
+      }
+
+      @Override
+      public TypeMapping visit(ArrowType.LargeBinary largeBinary) {
         return primitive();
       }
 
@@ -686,6 +766,11 @@ public class SchemaConverter {
 
       @Override
       public TypeMapping visit(Interval type) {
+        return primitive();
+      }
+
+      @Override
+      public TypeMapping visit(ArrowType.Duration duration) {
         return primitive();
       }
 

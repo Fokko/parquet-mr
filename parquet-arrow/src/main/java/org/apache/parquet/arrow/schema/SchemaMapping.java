@@ -71,6 +71,7 @@ public class SchemaMapping {
     T visit(StructTypeMapping structTypeMapping);
     T visit(UnionTypeMapping unionTypeMapping);
     T visit(ListTypeMapping listTypeMapping);
+    T visit(MapTypeMapping mapTypeMapping);
     T visit(RepeatedTypeMapping repeatedTypeMapping);
   }
 
@@ -156,7 +157,7 @@ public class SchemaMapping {
     private final TypeMapping child;
 
     public ListTypeMapping(Field arrowField, List3Levels list3Levels, TypeMapping child) {
-      super(arrowField, list3Levels.getList(), asList(child));
+      super(arrowField, list3Levels.getList(), Collections.singletonList(child));
       this.list3Levels = list3Levels;
       this.child = child;
       if (list3Levels.getElement() != child.getParquetType()) {
@@ -177,6 +178,32 @@ public class SchemaMapping {
       return visitor.visit(this);
     }
   }
+
+  /**
+   * mapping of a Map type and standard 3-level Map annotated Parquet type
+   */
+  public static class MapTypeMapping extends TypeMapping {
+    private final List3Levels list3Levels;
+    private final TypeMapping key;
+    private final TypeMapping value;
+
+    public MapTypeMapping(Field arrowField, List3Levels list3Levels, TypeMapping key, TypeMapping value) {
+      super(arrowField, list3Levels.getList(), asList(key, value));
+      this.list3Levels = list3Levels;
+      this.key = key;
+      this.value = value;
+    }
+
+    public List3Levels getList3Levels() {
+      return list3Levels;
+    }
+
+    @Override
+    public <T> T accept(TypeMappingVisitor<T> visitor) {
+      return visitor.visit(this);
+    }
+  }
+
 
   /**
    * mapping of a List type and repeated Parquet field (non-list annotated)
