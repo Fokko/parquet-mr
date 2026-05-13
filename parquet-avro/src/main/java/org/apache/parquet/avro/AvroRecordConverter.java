@@ -31,7 +31,6 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -789,11 +788,11 @@ class AvroRecordConverter<T> extends AvroConverters.AvroGroupConverter {
       } else if (elementClass == double.class) {
         parent.add(((DoubleArrayList) container).toDoubleArray());
       } else if (elementClass == String.class) {
-        parent.add(((ArrayList) container).toArray(new String[0]));
+        parent.add(container.toArray(new String[0]));
       } else if (elementClass == UUID.class) {
-        parent.add(((ArrayList) container).toArray(new UUID[0]));
+        parent.add(container.toArray(new UUID[0]));
       } else {
-        parent.add(((ArrayList) container).toArray((Object[]) Array.newInstance(elementClass, 0)));
+        parent.add(container.toArray());
       }
     }
 
