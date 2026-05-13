@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -43,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Conversion;
 import org.apache.avro.LogicalType;
@@ -786,8 +788,12 @@ class AvroRecordConverter<T> extends AvroConverters.AvroGroupConverter {
         parent.add(((FloatArrayList) container).toFloatArray());
       } else if (elementClass == double.class) {
         parent.add(((DoubleArrayList) container).toDoubleArray());
+      } else if (elementClass == String.class) {
+        parent.add(((ArrayList) container).toArray(new String[0]));
+      } else if (elementClass == UUID.class) {
+        parent.add(((ArrayList) container).toArray(new UUID[0]));
       } else {
-        parent.add(((ArrayList) container).toArray());
+        parent.add(((ArrayList) container).toArray((Object[]) Array.newInstance(elementClass, 0)));
       }
     }
 
