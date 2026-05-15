@@ -354,12 +354,17 @@ class AvroRecordConverter<T> extends AvroConverters.AvroGroupConverter {
       ParentValueContainer setter,
       ReflectClassValidator validator) {
     LogicalType logicalType = schema.getLogicalType();
-    Conversion<?> conversion;
+    Conversion<?> conversion = null;
 
-    if (knownClass != null) {
-      conversion = model.getConversionByClass(knownClass, logicalType);
-    } else {
-      conversion = model.getConversionFor(logicalType);
+    // Avro 1.12.x removed the null-guard inside GenericData.getConversionByClass(Class, LogicalType),
+    // so it NPEs on logicalType.getName() when the class has any registered conversion but the
+    // schema has no logical type. Skip the lookup entirely when there's no logical type to match.
+    if (logicalType != null) {
+      if (knownClass != null) {
+        conversion = model.getConversionByClass(knownClass, logicalType);
+      } else {
+        conversion = model.getConversionFor(logicalType);
+      }
     }
 
     ParentValueContainer parent = ParentValueContainer.getConversionContainer(setter, conversion, schema);
