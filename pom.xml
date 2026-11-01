@@ -112,7 +112,11 @@
     <opencsv.version>2.3</opencsv.version>
     <jcommander.version>1.82</jcommander.version>
     <tukaani.version>1.12</tukaani.version>
-    <zstd-jni.version>1.5.7-15</zstd-jni.version>
+<<<<<<< HEAD
+    <zstd-jni.version>1.5.7-24</zstd-jni.version>
+=======
+    <zstd-jni.version>1.5.7-24</zstd-jni.version>
+>>>>>>> cec62500 (Bump com.github.luben:zstd-jni from 1.5.7-23 to 1.5.7-24 (#3918))
     <commons-text.version>1.15.0</commons-text.version>
     <jsr305.version>3.0.2</jsr305.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
